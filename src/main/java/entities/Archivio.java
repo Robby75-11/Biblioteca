@@ -2,89 +2,89 @@ package entities;
 
 import Dao.ElementoCatalogoDao;
 import Dao.PrestitoDao;
+import Dao.UtenteDao;
+import entities.ElementoCatalogo;
+import entities.Prestito;
+import entities.Utente;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Archivio {
 
-    private final ElementoCatalogoDao elementoCatalogoDao;
+    private final EntityManagerFactory emf;
+    private final EntityManager em;
+    private final ElementoCatalogoDao elementoDao;
     private final PrestitoDao prestitoDao;
+    private final UtenteDao utenteDao;
 
     public Archivio() {
-        this.elementoCatalogoDao = new ElementoCatalogoDao();
-        this.prestitoDao = new PrestitoDao();
+        this.emf = Persistence.createEntityManagerFactory("biblioteca-unit");
+        this.em = emf.createEntityManager();
+        this.elementoDao = new ElementoCatalogoDao(em);
+        this.prestitoDao = new PrestitoDao(em);
+        this.utenteDao = new UtenteDao(em);
     }
 
     public void aggiungiElemento(ElementoCatalogo elemento) {
-        elementoCatalogoDao.save(elemento);
+        elementoDao.save(elemento);
     }
 
-    public boolean rimuoviElemento(String isbn) {
-        Optional<ElementoCatalogo> elementoOpt = elementoCatalogoDao.findByIsbn(isbn);
-        if (elementoOpt.isPresent()) {
-            elementoCatalogoDao.delete(elementoOpt.get());
-            System.out.println("Elemento rimosso: " + isbn);
-            return true;
-        } else {
-            System.out.println("Elemento non trovato per rimozione: " + isbn);
-            return false;
-        }
+    public void rimuoviElementoPerCodiceISBN(String codiceISBN) {
+        Optional<ElementoCatalogo> elementoDaRimuovere = elementoDao.findByCodiceISBN(codiceISBN);
+        elementoDaRimuovere.ifPresent(elementoDao::delete);
     }
 
-    public ElementoCatalogo ricercaPerISBN(String isbn) {
-        return elementoCatalogoDao.findByIsbn(isbn).orElse(null);
+    public Optional<ElementoCatalogo> ricercaElementoPerISBN(String isbn) {
+        return elementoDao.findByCodiceISBN(isbn);
     }
 
-    public List<ElementoCatalogo> ricercaPerAnnoPubblicazione(int anno) {
-        return elementoCatalogoDao.findByAnnoPubblicazione(anno);
+    public List<ElementoCatalogo> ricercaElementiPerAnnoPubblicazione(int anno) {
+        return elementoDao.findByAnnoPubblicazione(anno);
     }
 
-    public List<Libro> ricercaPerAutore(String autore) {
-        return elementoCatalogoDao.findByAutore(autore).stream()
-                .filter(e -> e instanceof Libro)
-                .map(e -> (Libro) e)
-                .collect(Collectors.toList());
+    public List<ElementoCatalogo> ricercaLibriPerAutore(String autore) {
+        return elementoDao.findByAutore(autore).stream()
+                .map(elemento -> (ElementoCatalogo) elemento) // Esegui il cast esplicito
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    public List<ElementoCatalogo> ricercaPerTitolo(String titolo) {
-        return elementoCatalogoDao.findByTitoloContaining(titolo);
+    public List<ElementoCatalogo> ricercaElementiPerTitolo(String titolo) {
+        return elementoDao.findByTitolo(titolo);
     }
 
-    /**
-     * Ricerca gli elementi attualmente in prestito dato il numero di tessera di un utente.
-     * Nota: Assumiamo che Prestito contenga l'ISBN dell'elemento.
-     */
-    public List<ElementoCatalogo> ricercaPrestitiAttualiPerUtente(Long utenteId, List<Utente> utenti) {
-        return utenti.stream()
-                .filter(u -> u.getId().equals(utenteId))
-                .findFirst()
-                .map(utente -> prestitoDao.findPrestitiAttuali(utente).stream()
-                        .map(prestito -> elementoCatalogoDao.findById(prestito.getElementoPrestatoId()).orElse(null))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList()))
-                .orElse(List.of());
+    public void registraPrestito(Prestito prestito) {
+        prestitoDao.save(prestito);
     }
 
-    /**
-     * Ricerca di tutti i prestiti scaduti e non ancora restituiti.
-     */
+    public Optional<Utente> ricercaUtentePerNumeroTessera(String numeroTessera) {
+        return utenteDao.findByNumeroTessera(numeroTessera);
+    }
+
+    public List<Prestito> ricercaPrestitiAttualiPerUtente(Long utenteId, List<Utente> utenti) {
+        Optional<Utente> utente = utenti.stream().filter(u -> u.getId().equals(utenteId)).findFirst();
+        return utente.map(prestitoDao::findPrestitiAttuali).orElse(List.of());
+    }
+
     public List<Prestito> ricercaPrestitiScaduti() {
         return prestitoDao.findPrestitiScaduti();
     }
 
-    public void registraPrestito(Prestito prestito) {
-        PrestitoDao prestitoDao = new PrestitoDao();
-        prestitoDao.save(prestito);
-    }
-
     public void registraRestituzione(Prestito prestito) {
-        prestitoDao.update(prestito); // Assumiamo che l'oggetto Prestito aggiornato venga passato
+        prestitoDao.update(prestito);
     }
 
     public void shutdown() {
-        elementoCatalogoDao.shutdown();
+        elementoDao.shutdown();
         prestitoDao.shutdown();
+        utenteDao.shutdown();
+        if (em.isOpen()) {
+            em.close();
+        }
+        if (emf.isOpen()) {
+            emf.close();
+        }
     }
 }

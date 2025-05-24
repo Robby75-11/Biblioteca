@@ -1,4 +1,5 @@
 package Dao;
+
 import entities.ElementoCatalogo;
 import entities.Libro;
 import jakarta.persistence.EntityManager;
@@ -11,81 +12,65 @@ import java.util.Optional;
 public class ElementoCatalogoDao {
 
     private final EntityManagerFactory emf;
-private  EntityManager em;
-    public ElementoCatalogoDao() {
+    private final EntityManager em;
+
+    public ElementoCatalogoDao(EntityManager em) {
         this.emf = Persistence.createEntityManagerFactory("biblioteca-unit");
+        this.em = em;
     }
 
     public Optional<ElementoCatalogo> findById(Long id) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            return Optional.ofNullable(em.find(ElementoCatalogo.class, id));
-        } finally {
-            em.close();
-        }
-    }
-
-    public Optional<ElementoCatalogo> findByIsbn(String isbn) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<ElementoCatalogo> query = em.createQuery(
-                    "SELECT e FROM ElementoCatalogo e WHERE e.isbn = :isbn", ElementoCatalogo.class);
-            query.setParameter("isbn", isbn);
-            return query.getResultList().stream().findFirst();
-        } finally {
-            em.close();
-        }
+        return Optional.ofNullable(em.find(ElementoCatalogo.class, id));
     }
 
     public List<ElementoCatalogo> findAll() {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<ElementoCatalogo> query = em.createQuery("SELECT e FROM ElementoCatalogo e", ElementoCatalogo.class);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
+        TypedQuery<ElementoCatalogo> query = em.createQuery("SELECT e FROM ElementoCatalogo e", ElementoCatalogo.class);
+        return query.getResultList();
     }
 
     public void save(ElementoCatalogo elemento) {
-        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            TypedQuery<ElementoCatalogo> query = em.createQuery(
-                    "SELECT e FROM ElementoCatalogo e WHERE e.isbn = :isbn", ElementoCatalogo.class);
-            query.setParameter("isbn", elemento.getIsbn());
-
-            List<ElementoCatalogo> resultList = query.getResultList();
-            if (resultList.isEmpty()) {
-                em.persist(elemento);
-                em.getTransaction().commit();
-                System.out.println("Elemento aggiunto: " + elemento.getTitolo());
-            } else {
-                System.out.println("Elemento con ISBN già presente: " + elemento.getIsbn());
-            }
-        } finally {
-            em.close();
-        }
-    }
-
-    public void update(ElementoCatalogo elemento) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            elemento = em.merge(elemento);
+            em.persist(elemento);
             em.getTransaction().commit();
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
             e.printStackTrace();
-        } finally {
-            em.close();
         }
     }
 
+    public Optional<ElementoCatalogo> findByCodiceISBN(String codice) {
+        TypedQuery<ElementoCatalogo> query = em.createQuery(
+                "SELECT e FROM ElementoCatalogo e WHERE e.codiceISBN = :codice", ElementoCatalogo.class);
+        query.setParameter("codice", codice);
+        List<ElementoCatalogo> results = query.getResultList();
+        return results.stream().findFirst();
+    }
+
+    public List<ElementoCatalogo> findByAnnoPubblicazione(int anno) {
+        TypedQuery<ElementoCatalogo> query = em.createQuery(
+                "SELECT e FROM ElementoCatalogo e WHERE e.annoPubblicazione = :anno", ElementoCatalogo.class);
+        query.setParameter("anno", anno);
+        return query.getResultList();
+    }
+
+    public List<Libro> findByAutore(String autore) {
+        TypedQuery<Libro> query = em.createQuery(
+                "SELECT l FROM Libro l WHERE l.autore LIKE :autore", Libro.class);
+        query.setParameter("autore", "%" + autore + "%");
+        return query.getResultList();
+    }
+
+    public List<ElementoCatalogo> findByTitolo(String titolo) {
+        TypedQuery<ElementoCatalogo> query = em.createQuery(
+                "SELECT e FROM ElementoCatalogo e WHERE LOWER(e.titolo) LIKE LOWER(:titolo)", ElementoCatalogo.class);
+        query.setParameter("titolo", "%" + titolo + "%");
+        return query.getResultList();
+    }
+
     public void delete(ElementoCatalogo elemento) {
-        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
             if (!em.contains(elemento)) {
@@ -98,39 +83,6 @@ private  EntityManager em;
                 em.getTransaction().rollback();
             }
             e.printStackTrace();
-        } finally {
-            em.close();
-        }
-    }
-
-    public List<ElementoCatalogo> findByAnnoPubblicazione(int anno) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<ElementoCatalogo> query = em.createQuery(
-                    "SELECT e FROM ElementoCatalogo e WHERE e.annoPubblicazione = :anno", ElementoCatalogo.class);
-            query.setParameter("anno", anno);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
-    }
-
-    public List<Libro> findByAutore(String autore) {
-        TypedQuery<Libro> query = em.createQuery(
-                "SELECT l FROM Libro l WHERE l.autore = :autore", Libro.class);
-        query.setParameter("autore", autore);
-        return query.getResultList();
-    }
-
-    public List<ElementoCatalogo> findByTitoloContaining(String titolo) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<ElementoCatalogo> query = em.createQuery(
-                    "SELECT e FROM ElementoCatalogo e WHERE LOWER(e.titolo) LIKE LOWER(:titolo)", ElementoCatalogo.class);
-            query.setParameter("titolo", "%" + titolo + "%");
-            return query.getResultList();
-        } finally {
-            em.close();
         }
     }
 

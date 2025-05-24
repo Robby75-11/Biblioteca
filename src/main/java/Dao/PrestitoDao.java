@@ -13,57 +13,36 @@ import java.util.Optional;
 public class PrestitoDao {
 
     private final EntityManagerFactory emf;
+    private final EntityManager em;
 
-    public PrestitoDao() {
+    public PrestitoDao(EntityManager em) {
         this.emf = Persistence.createEntityManagerFactory("biblioteca-unit");
+        this.em = em;
     }
 
     public Optional<Prestito> findById(Long id) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            Prestito prestito = em.find(Prestito.class, id);
-            return Optional.ofNullable(prestito);
-        } finally {
-            em.close();
-        }
+        return Optional.ofNullable(em.find(Prestito.class, id));
     }
 
     public List<Prestito> findAll() {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<Prestito> query = em.createQuery("SELECT p FROM Prestito p", Prestito.class);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
+        TypedQuery<Prestito> query = em.createQuery("SELECT p FROM Prestito p", Prestito.class);
+        return query.getResultList();
     }
 
     public void save(Prestito prestito) {
-        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Utente utente = prestito.getUtente();
-            if (utente != null) {
-                utente = em.merge(utente); // recupera o gestisce l'entità
-                prestito.setUtente(utente);
-            }
-            if (prestito.getId() == null) {
-                em.persist(prestito);
-            } else {
-                em.merge(prestito);
-            }
+            em.persist(prestito);
             em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             e.printStackTrace();
-        } finally {
-            em.close();
         }
     }
 
-
     public void update(Prestito prestito) {
-        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
             prestito = em.merge(prestito);
@@ -72,14 +51,11 @@ public class PrestitoDao {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-            e.printStackTrace(); // Loggare l'errore
-        } finally {
-            em.close();
+            e.printStackTrace();
         }
     }
 
     public void delete(Prestito prestito) {
-        EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
             if (!em.contains(prestito)) {
@@ -91,64 +67,22 @@ public class PrestitoDao {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-            e.printStackTrace(); // Loggare l'errore
-        } finally {
-            em.close();
-        }
-    }
-
-    public void deleteById(Long id) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            Prestito prestito = em.find(Prestito.class, id);
-            if (prestito != null) {
-                em.remove(prestito);
-            }
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            e.printStackTrace(); // Loggare l'errore
-        } finally {
-            em.close();
-        }
-    }
-
-    public List<Prestito> findByUtente(Utente utente) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<Prestito> query = em.createQuery(
-                    "SELECT p FROM Prestito p WHERE p.utente = :utente", Prestito.class);
-            query.setParameter("utente", utente);
-            return query.getResultList();
-        } finally {
-            em.close();
+            e.printStackTrace();
         }
     }
 
     public List<Prestito> findPrestitiAttuali(Utente utente) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            return em.createQuery("SELECT p FROM Prestito p WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class)
-                    .setParameter("utente", utente)
-                    .getResultList();
-        } finally {
-            em.close();
-        }
+        TypedQuery<Prestito> query = em.createQuery(
+                "SELECT p FROM Prestito p WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
+        query.setParameter("utente", utente);
+        return query.getResultList();
     }
 
     public List<Prestito> findPrestitiScaduti() {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<Prestito> query = em.createQuery(
-                    "SELECT p FROM Prestito p WHERE p.dataRestituzionePrevista < :oggi AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
-            query.setParameter("oggi", LocalDate.now());
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
+        TypedQuery<Prestito> query = em.createQuery(
+                "SELECT p FROM Prestito p WHERE p.dataRestituzionePrevista < :oggi AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
+        query.setParameter("oggi", LocalDate.now());
+        return query.getResultList();
     }
 
     public void shutdown() {

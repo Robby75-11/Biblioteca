@@ -1,75 +1,215 @@
+import Dao.ElementoCatalogoDao;
+import Dao.PrestitoDao;
 import Dao.UtenteDao;
 import entities.*;
 import enumeration.Periodicita;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.TypedQuery;
 import java.time.LocalDate;
-import java.util.ArrayList;
+
 import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class MainBiblioteca {
 
+    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("biblioteca-unit");
+    private static final ElementoCatalogoDao elementoDao = new ElementoCatalogoDao(emf.createEntityManager());
+    private static final PrestitoDao prestitoDao = new PrestitoDao(emf.createEntityManager());
+    private static final UtenteDao utenteDao = new UtenteDao(emf.createEntityManager());
+    private static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        // Inizializzazione dell'Archivio
-        Archivio archivio = new Archivio();
+        boolean continua = true;
+        while (continua) {
+            mostraMenu();
+            int scelta = scanner.nextInt();
+            scanner.nextLine(); // Consuma la newline
 
-        UtenteDao utenteDao = new UtenteDao();
+            switch (scelta) {
+                case 1:
+                    aggiungiElementoCatalogo();
+                    break;
+                case 2:
+                    rimuoviElementoCatalogo();
+                    break;
+                case 3:
+                    ricercaPerISBN();
+                    break;
+                case 4:
+                    ricercaPerAnnoPubblicazione();
+                    break;
+                case 5:
+                    ricercaPerAutore();
+                    break;
+                case 6:
+                    ricercaPerTitolo();
+                    break;
+                case 7:
+                    ricercaPrestitiAttualiPerTessera();
+                    break;
+                case 8:
+                    ricercaPrestitiScaduti();
+                    break;
+                case 0:
+                    continua = false;
+                    System.out.println("Arrivederci!");
+                    break;
+                default:
+                    System.out.println("Scelta non valida.");
+            }
+        }
 
-        // Creazione di alcuni elementi del catalogo
-        Libro libro1 = new Libro("978-8808817204", "L'ombra del vento", 2004, 496, "Carlos Ruiz Zafón", "Narrativa");
-        Libro libro2 = new Libro("978-8854176747", "Il codice da Vinci", 2003, 432, "Dan Brown", "Thriller");
-        Rivista rivista1 = new Rivista("1124-894X", "National Geographic", LocalDate.of(2023, 1, 1), 150, Periodicita.MENSILE);
-        Rivista rivista2 = new Rivista("2039-7549", "Focus", LocalDate.of(2024, 1, 1), 120, Periodicita.MENSILE);
-
-        // Aggiunta degli elementi all'archivio
-        archivio.aggiungiElemento(libro1);
-        archivio.aggiungiElemento(libro2);
-        archivio.aggiungiElemento(rivista1);
-        archivio.aggiungiElemento(rivista2);
-
-        // Creazione di utenti
-        Utente utente1 = new Utente(1L, "Mario", "Rossi", LocalDate.of(1990, 5, 15), "MR12345");
-        Utente utente2 = new Utente(2L, "Anna", "Verdi", LocalDate.of(1985, 10, 20), "AV67890");
-
-
-        List<Utente> utenti = new ArrayList<>();
-        utenti.add(utente1);
-        utenti.add(utente2);
-
-        // Salvataggio degli utenti nel database utilizzando il UtenteDao
-        utenteDao.save(utente1);
-        utenteDao.save(utente2);
-
-        System.out.println("Utenti salvati nel database.");
-        System.out.println(utente1);
-        System.out.println(utente2);
-
+        elementoDao.shutdown();
+        prestitoDao.shutdown();
         utenteDao.shutdown();
+        emf.close();
+        scanner.close();
+    }
 
-        // Creazione di prestiti
-        Prestito prestito1 = new Prestito(101L, utente1, "Libro", libro1.getId(), LocalDate.now(), LocalDate.now().plusDays(30), null);
-        Prestito prestito2 = new Prestito(102L, utente2, "Rivista", rivista1.getId(), LocalDate.now().minusDays(5), LocalDate.now().plusDays(25), null);
-        Prestito prestito3 = new Prestito(103L, utente1, "Libro", libro2.getId(), LocalDate.now().minusDays(40), LocalDate.now().minusDays(10), LocalDate.now().minusDays(5)); // Già restituito
-        Prestito prestito4 = new Prestito(104L, utente2, "Rivista", rivista2.getId(), LocalDate.now().minusDays(60), LocalDate.now().minusDays(30), null); // Scaduto
+    private static void mostraMenu() {
+        System.out.println("\n--- Menu Biblioteca ---");
+        System.out.println("1. Aggiungi elemento al catalogo (L=Libro, R=Rivista)");
+        System.out.println("2. Rimuovi elemento dal catalogo (ISBN/ISSN)");
+        System.out.println("3. Ricerca elemento per ISBN/ISSN");
+        System.out.println("4. Ricerca elementi per anno di pubblicazione");
+        System.out.println("5. Ricerca libri per autore");
+        System.out.println("6. Ricerca elementi per titolo o parte di esso");
+        System.out.println("7. Ricerca prestiti attuali per numero di tessera utente");
+        System.out.println("8. Ricerca prestiti scaduti non restituiti");
+        System.out.println("0. Esci");
+        System.out.print("Inserisci la tua scelta: ");
+    }
 
-        // Registrazione dei prestiti
-        archivio.registraPrestito(prestito1);
-        archivio.registraPrestito(prestito2);
-        archivio.registraPrestito(prestito3);
-        archivio.registraPrestito(prestito4);
+    private static void aggiungiElementoCatalogo() {
+        System.out.print("Tipo di elemento (L/R): ");
+        String tipo = scanner.nextLine().toUpperCase();
 
-        // Ricerca prestiti attuali per utente
-        System.out.println("\nPrestiti attuali per utente Mario Rossi: " + archivio.ricercaPrestitiAttualiPerUtente(1L, utenti));
-        System.out.println("Prestiti attuali per utente Anna Verdi: " + archivio.ricercaPrestitiAttualiPerUtente(2L, utenti));
+        System.out.print("Codice ISBN/ISSN: ");
+        String codice = scanner.nextLine();
+        System.out.print("Titolo: ");
+        String titolo = scanner.nextLine();
+        System.out.print("Anno di pubblicazione: ");
+        int anno = scanner.nextInt();
+        scanner.nextLine(); // Consuma la newline
+        System.out.print("Numero di pagine: ");
+        int pagine = scanner.nextInt();
+        scanner.nextLine(); // Consuma la newline
 
-        // Ricerca prestiti scaduti
-        System.out.println("\nPrestiti scaduti: " + archivio.ricercaPrestitiScaduti());
+        if (tipo.equals("L")) {
+            System.out.print("Autore: ");
+            String autore = scanner.nextLine();
+            System.out.print("Genere: ");
+            String genere = scanner.nextLine();
+            Libro libro = new Libro(codice, titolo, anno, pagine, autore, genere);
+            elementoDao.save(libro);
+            System.out.println("Libro aggiunto al catalogo.");
+        } else if (tipo.equals("R")) {
+            System.out.print("Data di pubblicazione (YYYY-MM-DD): ");
+            LocalDate dataPubblicazione = LocalDate.parse(scanner.nextLine());
+            System.out.print("Periodicita (MENSILE, SETTIMANALE, ANNUALE, BIMESTRALE, TRIMESTRALE): ");
+            Periodicita periodicita = Periodicita.valueOf(scanner.nextLine().toUpperCase());
+            Rivista rivista = new Rivista(codice, titolo, dataPubblicazione, pagine, periodicita);
+            elementoDao.save(rivista);
+            System.out.println("Rivista aggiunta al catalogo.");
+        } else {
+            System.out.println("Tipo di elemento non valido.");
+        }
+    }
 
-        // Registrazione restituzione
-        prestito1.setDataRestituzioneEffettiva(LocalDate.now());
-        archivio.registraRestituzione(prestito1);
-        System.out.println("\nPrestiti attuali per utente Mario Rossi dopo restituzione: " + archivio.ricercaPrestitiAttualiPerUtente(1L, utenti));
+    private static void rimuoviElementoCatalogo() {
+        System.out.print("Inserisci il codice ISBN/ISSN dell'elemento da rimuovere: ");
+        String codice = scanner.nextLine();
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<ElementoCatalogo> query = em.createQuery(
+                    "DELETE FROM ElementoCatalogo e WHERE e.codiceISBN = :codice", ElementoCatalogo.class);
+            int deletedCount = query.setParameter("codice", codice).executeUpdate();
+            em.getTransaction().commit();
+            if (deletedCount > 0) {
+                System.out.println("Elemento con codice " + codice + " rimosso dal catalogo.");
+            } else {
+                System.out.println("Nessun elemento trovato con codice " + codice + ".");
+            }
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            em.close();
+        }
+    }
 
-        // Chiusura dell'Archivio (e quindi degli EntityManagerFactory)
-        archivio.shutdown();
+    private static void ricercaPerISBN() {
+        System.out.print("Inserisci il codice ISBN/ISSN da cercare: ");
+        String codice = scanner.nextLine();
+        Optional<ElementoCatalogo> elemento = elementoDao.findByCodiceISBN(codice);
+        elemento.ifPresentOrElse(System.out::println, () -> System.out.println("Nessun elemento trovato con codice " + codice + "."));
+    }
 
+    private static void ricercaPerAnnoPubblicazione() {
+        System.out.print("Inserisci l'anno di pubblicazione da cercare: ");
+        int anno = scanner.nextInt();
+        scanner.nextLine(); // Consuma la newline
+        List<ElementoCatalogo> elementi = elementoDao.findByAnnoPubblicazione(anno);
+        if (!elementi.isEmpty()) {
+            System.out.println("Elementi pubblicati nel " + anno + ":");
+            elementi.forEach(System.out::println);
+        } else {
+            System.out.println("Nessun elemento trovato pubblicato nel " + anno + ".");
+        }
+    }
+
+    private static void ricercaPerAutore() {
+        System.out.print("Inserisci l'autore da cercare: ");
+        String autore = scanner.nextLine();
+        List<Libro> libri = elementoDao.findByAutore(autore);
+        if (!libri.isEmpty()) {
+            System.out.println("Libri di " + autore + ":");
+            libri.forEach(System.out::println);
+        } else {
+            System.out.println("Nessun libro trovato con autore " + autore + ".");
+        }
+    }
+
+    private static void ricercaPerTitolo() {
+        System.out.print("Inserisci il titolo o parte del titolo da cercare: ");
+        String titolo = scanner.nextLine();
+        List<ElementoCatalogo> elementi = elementoDao.findByTitolo(titolo);
+        if (!elementi.isEmpty()) {
+            System.out.println("Elementi con titolo contenente '" + titolo + "':");
+            elementi.forEach(System.out::println);
+        } else {
+            System.out.println("Nessun elemento trovato con titolo contenente '" + titolo + "'.");
+        }
+    }
+
+    private static void ricercaPrestitiAttualiPerTessera() {
+        System.out.print("Inserisci il numero di tessera dell'utente: ");
+        String numeroTessera = scanner.nextLine();
+        Optional<Utente> utente = utenteDao.findByNumeroTessera(numeroTessera);
+        utente.ifPresentOrElse(u -> {
+            List<Prestito> prestitiAttuali = prestitoDao.findPrestitiAttuali(u);
+            if (!prestitiAttuali.isEmpty()) {
+                System.out.println("Prestiti attuali per l'utente " + u.getNome() + " " + u.getCognome() + " (" + u.getNumeroTessera() + "):");
+                prestitiAttuali.forEach(System.out::println);
+            } else {
+                System.out.println("Nessun prestito attuale trovato per l'utente " + u.getNome() + " " + u.getCognome() + ".");
+            }
+        }, () -> System.out.println("Nessun utente trovato con il numero di tessera " + numeroTessera + "."));
+    }
+
+    private static void ricercaPrestitiScaduti() {
+        List<Prestito> prestitiScaduti = prestitoDao.findPrestitiScaduti();
+        if (!prestitiScaduti.isEmpty()) {
+            System.out.println("Prestiti scaduti non ancora restituiti:");
+            prestitiScaduti.forEach(System.out::println);
+        } else {
+            System.out.println("Nessun prestito scaduto non ancora restituito trovato.");
+        }
     }
 }
