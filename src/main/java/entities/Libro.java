@@ -2,8 +2,6 @@ package entities;
 
 import jakarta.persistence.Entity;
 
-import java.time.LocalDate;
-import java.util.UUID;
 
 @Entity
 
@@ -40,8 +38,8 @@ public class Libro extends ElementoCatalogo {
     public String toString() {
         return "Book{" +
                  super.toString()+
-                "author='" + autore + '\'' +
-                ", genre='" + genere + '\'' +
+                "autore='" + autore + '\'' +
+                ", genere='" + genere + '\'' +
                 '}';
     }
 }

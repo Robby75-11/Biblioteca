@@ -1,9 +1,7 @@
 package entities;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Entity
 public class Prestito {
@@ -14,25 +12,26 @@ public class Prestito {
 
     @ManyToOne
     @JoinColumn(name = "utente_id") // Nome della colonna foreign key nella tabella Prestito
+
     private Utente utente;
     private String elementoPrestatoTipo;
     private Long elementoPrestatoId;
     private LocalDate dataInizioPrestito;
     private LocalDate dataRestituzionePrevista;
-    private LocalDate getDataRestituzioneEffettiva;
+    private LocalDate dataRestituzioneEffettiva;
 
     public Prestito() {
     }
 
     public Prestito(Long id, Utente utente, String elementoPrestatoTipo, Long elementoPrestatoId, LocalDate
-            dataInizioPrestito, LocalDate dataRestituzionePrevista, LocalDate getDataRestituzioneEffettiva) {
+            dataInizioPrestito, LocalDate dataRestituzionePrevista, LocalDate dataRestituzioneEffettiva) {
         this.id = id;
         this.utente = utente;
         this.elementoPrestatoTipo = elementoPrestatoTipo;
         this.elementoPrestatoId = elementoPrestatoId;
         this.dataInizioPrestito = dataInizioPrestito;
         this.dataRestituzionePrevista = dataRestituzionePrevista;
-        this.getDataRestituzioneEffettiva = getDataRestituzioneEffettiva;
+        this.dataRestituzioneEffettiva = dataRestituzioneEffettiva;
     }
 
     public Long getId() {
@@ -83,12 +82,12 @@ public class Prestito {
         this.dataRestituzionePrevista = dataRestituzionePrevista;
     }
 
-    public LocalDate getGetDataRestituzioneEffettiva() {
-        return getDataRestituzioneEffettiva;
+    public LocalDate getDataRestituzioneEffettiva() {
+        return dataRestituzioneEffettiva;
     }
 
-    public void setGetDataRestituzioneEffettiva(LocalDate getDataRestituzioneEffettiva) {
-        this.getDataRestituzioneEffettiva = getDataRestituzioneEffettiva;
+    public void setDataRestituzioneEffettiva(LocalDate dataRestituzioneEffettiva) {
+        this.dataRestituzioneEffettiva = dataRestituzioneEffettiva;
     }
 
     @Override
@@ -100,7 +99,7 @@ public class Prestito {
                 ", elementoPrestatoId=" + elementoPrestatoId +
                 ", dataInizioPrestito=" + dataInizioPrestito +
                 ", dataRestituzionePrevista=" + dataRestituzionePrevista +
-                ", getDataRestituzioneEffettiva=" + getDataRestituzioneEffettiva +
+                ", dataRestituzioneEffettiva=" + dataRestituzioneEffettiva +
                 '}';
     }
 }

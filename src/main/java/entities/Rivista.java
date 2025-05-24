@@ -14,8 +14,12 @@ public class Rivista extends ElementoCatalogo {
     @Enumerated(EnumType.STRING)
     private Periodicita periodicita;
 
-    public Rivista(String isbn, String titolo, int annoPubblicazione, int pagine) {
-        super(isbn, titolo, annoPubblicazione, pagine);
+    public Rivista() {
+        super();
+    }
+
+    public Rivista(String isbn, String titolo, LocalDate annoPubblicazione, int pagine, Periodicita periodicita) {
+        super(isbn, titolo, annoPubblicazione.getYear(), pagine);
         this.periodicita = periodicita;
 
     }
@@ -32,7 +36,7 @@ public class Rivista extends ElementoCatalogo {
     public String toString() {
         return "Rivista{" +
                 super.toString()+
-                "periodicity=" + periodicita +
+                "periodicita=" + periodicita +
                 '}';
     }
 }

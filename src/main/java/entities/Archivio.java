@@ -2,8 +2,7 @@ package entities;
 import Dao.ElementoCatalogoDao;
 import Dao.PrestitoDao;
 import entities.ElementoCatalogo; // Importa ElementoCatalogo dal package corretto
-import entities.Libro;           // Importa Libro dal package corretto
-import entities.Prestito;        // Importa Prestito dal package corretto
+
 import entities.Utente;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -123,10 +123,9 @@ public class PrestitoDao {
     public List<Prestito> findPrestitiAttuali(Utente utente) {
         EntityManager em = emf.createEntityManager();
         try {
-            TypedQuery<Prestito> query = em.createQuery(
-                    "SELECT p FROM Prestito p WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
-            query.setParameter("utente", utente);
-            return query.getResultList();
+            return em.createQuery("SELECT p FROM Prestito p WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class)
+                    .setParameter("utente", utente)
+                    .getResultList();
         } finally {
             em.close();
         }

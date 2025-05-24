@@ -2,29 +2,31 @@ package entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 
 @Entity
+@Table(name = "utente")
 public class Utente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String nome;
     private String cognome;
     LocalDate dataNascita;
+    private String numeroTessera;
 
     public Utente() {
     }
 
-    public Utente(Long id, String nome, String cognome, LocalDate dataNascita) {
+
+
+    public Utente(Long id, String nome, String cognome, LocalDate dataNascita, String numeroTessera) {
         this.id = id;
         this.nome = nome;
         this.cognome = cognome;
         this.dataNascita = dataNascita;
+        this.numeroTessera = numeroTessera;
     }
 
     public Long getId() {
@@ -59,6 +61,14 @@ public class Utente {
         this.dataNascita = dataNascita;
     }
 
+    public String getNumeroTessera() {
+        return numeroTessera;
+    }
+
+    public void setNumeroTessera(String numeroTessera) {
+        this.numeroTessera = numeroTessera;
+    }
+
     @Override
     public String toString() {
         return "Utente{" +
@@ -66,6 +76,7 @@ public class Utente {
                 ", nome='" + nome + '\'' +
                 ", cognome='" + cognome + '\'' +
                 ", dataNascita=" + dataNascita +
+                ", numeroTessera='" + numeroTessera + '\'' +
                 '}';
     }
 }

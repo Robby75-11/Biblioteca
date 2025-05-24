@@ -2,19 +2,22 @@ package entities;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class ElementoCatalogo {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(unique = true)
+    @Column(unique = true)
     private String isbn;
-  private String titolo;
-  private int annoPubblicazione;
-  private int pagine;
+    private String titolo;
+    private int annoPubblicazione;
+    private int pagine;
+
+    public ElementoCatalogo() {
+    }
 
     public ElementoCatalogo(String isbn, String titolo, int annoPubblicazione, int pagine) {
         this.isbn = isbn;
@@ -23,31 +26,12 @@ public abstract class ElementoCatalogo {
         this.pagine = pagine;
     }
 
-
-
-    public String getTitle() {
-        return titolo;
+    public Long getId() {
+        return id;
     }
 
-    public void setTitle(String title) {
-        this.titolo = title;
-    }
-
-
-    public int getAnnoPubblicazione() {
-        return annoPubblicazione;
-    }
-
-    public void setAnnoPubblicazione(int annoPubblicazione) {
-        this.annoPubblicazione = annoPubblicazione;
-    }
-
-    public int getPages() {
-        return pagine;
-    }
-
-    public void setPages(int pages) {
-        this.pagine= pages;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getIsbn() {
@@ -58,13 +42,39 @@ public abstract class ElementoCatalogo {
         this.isbn = isbn;
     }
 
+    public String getTitolo() {
+        return titolo;
+    }
+
+    public void setTitolo(String titolo) {
+        this.titolo = titolo;
+    }
+
+    public int getAnnoPubblicazione() {
+        return annoPubblicazione;
+    }
+
+    public void setAnnoPubblicazione(int annoPubblicazione) {
+        this.annoPubblicazione = annoPubblicazione;
+    }
+
+    public int getPagine() {
+        return pagine;
+    }
+
+    public void setPagine(int pagine) {
+        this.pagine = pagine;
+    }
+
     @Override
     public String toString() {
-        return "CatalogueElement{" +
-                "isbn=" + isbn +
-                ", title='" + titolo + '\'' +
+        return "ElementoCatalogo{" +
+                "id=" + id +
+                ", isbn='" + isbn + '\'' +
+                ", titolo='" + titolo + '\'' +
                 ", annoPubblicazione=" + annoPubblicazione +
-                ", pages=" + pagine +
+                ", pagine=" + pagine +
                 '}';
     }
 }
+
