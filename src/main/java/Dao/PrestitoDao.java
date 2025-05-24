@@ -42,17 +42,25 @@ public class PrestitoDao {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            em.persist(prestito);
+            Utente utente = prestito.getUtente();
+            if (utente != null) {
+                utente = em.merge(utente); // recupera o gestisce l'entità
+                prestito.setUtente(utente);
+            }
+            if (prestito.getId() == null) {
+                em.persist(prestito);
+            } else {
+                em.merge(prestito);
+            }
             em.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            e.printStackTrace(); // Loggare l'errore
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            e.printStackTrace();
         } finally {
             em.close();
         }
     }
+
 
     public void update(Prestito prestito) {
         EntityManager em = emf.createEntityManager();

@@ -1,10 +1,10 @@
 package entities;
+
 import Dao.ElementoCatalogoDao;
 import Dao.PrestitoDao;
-import entities.ElementoCatalogo; // Importa ElementoCatalogo dal package corretto
-
-import entities.Utente;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Archivio {
@@ -22,12 +22,15 @@ public class Archivio {
     }
 
     public boolean rimuoviElemento(String isbn) {
-        return elementoCatalogoDao.findByIsbn(isbn)
-                .map(elemento -> {
-                    elementoCatalogoDao.delete(elemento);
-                    return true;
-                })
-                .orElse(false);
+        Optional<ElementoCatalogo> elementoOpt = elementoCatalogoDao.findByIsbn(isbn);
+        if (elementoOpt.isPresent()) {
+            elementoCatalogoDao.delete(elementoOpt.get());
+            System.out.println("Elemento rimosso: " + isbn);
+            return true;
+        } else {
+            System.out.println("Elemento non trovato per rimozione: " + isbn);
+            return false;
+        }
     }
 
     public ElementoCatalogo ricercaPerISBN(String isbn) {
@@ -54,26 +57,14 @@ public class Archivio {
      * Nota: Assumiamo che Prestito contenga l'ISBN dell'elemento.
      */
     public List<ElementoCatalogo> ricercaPrestitiAttualiPerUtente(Long utenteId, List<Utente> utenti) {
-        Utente utente = utenti.stream()
+        return utenti.stream()
                 .filter(u -> u.getId().equals(utenteId))
                 .findFirst()
-                .orElse(null);
-
-        if (utente != null) {
-            return prestitoDao.findPrestitiAttuali(utente).stream()
-                    .map(prestito -> {
-                        if ("Libro".equals(prestito.getElementoPrestatoTipo())) {
-                            // Assumi che ElementoCatalogoDao abbia un metodo findById(Long id)
-                            return elementoCatalogoDao.findById(prestito.getElementoPrestatoId()).orElse(null);
-                        } else if ("Rivista".equals(prestito.getElementoPrestatoTipo())) {
-                            // Assumi che ElementoCatalogoDao abbia un metodo findById(Long id)
-                            return elementoCatalogoDao.findById(prestito.getElementoPrestatoId()).orElse(null);
-                        }
-                        return null; // Se il tipo non è riconosciuto
-                    })
-                    .collect(Collectors.toList());
-        }
-        return List.of();
+                .map(utente -> prestitoDao.findPrestitiAttuali(utente).stream()
+                        .map(prestito -> elementoCatalogoDao.findById(prestito.getElementoPrestatoId()).orElse(null))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()))
+                .orElse(List.of());
     }
 
     /**
@@ -84,6 +75,7 @@ public class Archivio {
     }
 
     public void registraPrestito(Prestito prestito) {
+        PrestitoDao prestitoDao = new PrestitoDao();
         prestitoDao.save(prestito);
     }
 

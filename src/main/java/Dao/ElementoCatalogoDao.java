@@ -1,5 +1,6 @@
 package Dao;
 import entities.ElementoCatalogo;
+import entities.Libro;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
@@ -10,7 +11,7 @@ import java.util.Optional;
 public class ElementoCatalogoDao {
 
     private final EntityManagerFactory emf;
-
+private  EntityManager em;
     public ElementoCatalogoDao() {
         this.emf = Persistence.createEntityManagerFactory("biblioteca-unit");
     }
@@ -50,13 +51,18 @@ public class ElementoCatalogoDao {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            em.persist(elemento);
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            TypedQuery<ElementoCatalogo> query = em.createQuery(
+                    "SELECT e FROM ElementoCatalogo e WHERE e.isbn = :isbn", ElementoCatalogo.class);
+            query.setParameter("isbn", elemento.getIsbn());
+
+            List<ElementoCatalogo> resultList = query.getResultList();
+            if (resultList.isEmpty()) {
+                em.persist(elemento);
+                em.getTransaction().commit();
+                System.out.println("Elemento aggiunto: " + elemento.getTitolo());
+            } else {
+                System.out.println("Elemento con ISBN già presente: " + elemento.getIsbn());
             }
-            e.printStackTrace();
         } finally {
             em.close();
         }
@@ -109,16 +115,11 @@ public class ElementoCatalogoDao {
         }
     }
 
-    public List<ElementoCatalogo> findByAutore(String autore) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<ElementoCatalogo> query = em.createQuery(
-                    "SELECT e FROM ElementoCatalogo e WHERE TYPE(e) = Libro AND LOWER(e.autore) = LOWER(:autore)", ElementoCatalogo.class);
-            query.setParameter("autore", autore);
-            return query.getResultList();
-        } finally {
-            em.close();
-        }
+    public List<Libro> findByAutore(String autore) {
+        TypedQuery<Libro> query = em.createQuery(
+                "SELECT l FROM Libro l WHERE l.autore = :autore", Libro.class);
+        query.setParameter("autore", autore);
+        return query.getResultList();
     }
 
     public List<ElementoCatalogo> findByTitoloContaining(String titolo) {

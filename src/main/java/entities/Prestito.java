@@ -10,6 +10,8 @@ public class Prestito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int version;
+
     @ManyToOne
     @JoinColumn(name = "utente_id") // Nome della colonna foreign key nella tabella Prestito
 

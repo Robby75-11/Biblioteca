@@ -1,7 +1,6 @@
 import Dao.UtenteDao;
 import entities.*;
 import enumeration.Periodicita;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

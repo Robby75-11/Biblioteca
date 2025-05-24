@@ -11,6 +11,10 @@ public class Libro extends ElementoCatalogo {
     private String autore;
     private String genere;
 
+    public Libro() {
+        super();
+    }
+
     public Libro(String isbn, String titolo, int annoPubblicazione, int pagine, String autore, String genere) {
         super(isbn, titolo, annoPubblicazione, pagine);
         this.autore = autore;
