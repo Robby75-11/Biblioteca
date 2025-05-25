@@ -96,7 +96,7 @@ public class Prestito {
     public String toString() {
         return "Prestito{" +
                 "id=" + id +
-                ", utente=" + utente +
+                ", utente=" + (utente != null ? utente.getNumeroTessera() : "null") + // Mostra solo il numero di tessera
                 ", elementoPrestatoTipo='" + elementoPrestatoTipo + '\'' +
                 ", elementoPrestatoId=" + elementoPrestatoId +
                 ", dataInizioPrestito=" + dataInizioPrestito +

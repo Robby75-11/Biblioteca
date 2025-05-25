@@ -72,10 +72,16 @@ public class PrestitoDao {
     }
 
     public List<Prestito> findPrestitiAttuali(Utente utente) {
-        TypedQuery<Prestito> query = em.createQuery(
-                "SELECT p FROM Prestito p WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
-        query.setParameter("utente", utente);
-        return query.getResultList();
+        try {
+            TypedQuery<Prestito> query = em.createQuery(
+                    "SELECT p FROM Prestito p " +
+                            "JOIN FETCH p.utente u " + // Assicurati che l'utente sia caricato
+                            "WHERE p.utente = :utente AND p.dataRestituzioneEffettiva IS NULL", Prestito.class);
+            query.setParameter("utente", utente);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 
     public List<Prestito> findPrestitiScaduti() {

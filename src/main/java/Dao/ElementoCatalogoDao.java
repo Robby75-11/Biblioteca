@@ -42,8 +42,9 @@ public class ElementoCatalogoDao {
     }
 
     public Optional<ElementoCatalogo> findByCodiceISBN(String codice) {
+
         TypedQuery<ElementoCatalogo> query = em.createQuery(
-                "SELECT e FROM ElementoCatalogo e WHERE e.codiceISBN = :codice", ElementoCatalogo.class);
+                "SELECT e FROM ElementoCatalogo e WHERE e.isbn = :codice", ElementoCatalogo.class);
         query.setParameter("codice", codice);
         List<ElementoCatalogo> results = query.getResultList();
         return results.stream().findFirst();

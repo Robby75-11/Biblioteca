@@ -21,12 +21,12 @@ public class Utente {
 
 
 
-    public Utente(Long id, String nome, String cognome, LocalDate dataNascita, String numeroTessera) {
+    public Utente(Long id, String nome, String cognome,  String numeroTessera, LocalDate dataNascita) {
         this.id = id;
         this.nome = nome;
         this.cognome = cognome;
-        this.dataNascita = dataNascita;
         this.numeroTessera = numeroTessera;
+        this.dataNascita = dataNascita;
     }
 
     public Long getId() {

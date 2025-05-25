@@ -18,8 +18,8 @@ public class Rivista extends ElementoCatalogo {
         super();
     }
 
-    public Rivista(String isbn, String titolo, LocalDate annoPubblicazione, int pagine, Periodicita periodicita) {
-        super(isbn, titolo, annoPubblicazione.getYear(), pagine);
+    public Rivista(String isbn, String titolo, int annoPubblicazione, int pagine, Periodicita periodicita) {
+        super(isbn, titolo, annoPubblicazione, pagine);
         this.periodicita = periodicita;
 
     }
